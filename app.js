@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require("express");
 const { createServer } = require('node:http');
-const router = require('./routes/authRoutes');
+const authRouter = require('./routes/authRoutes');
+const gameRouter = require('./routes/gameRoutes');
 const connectDB = require('./config/db');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -29,14 +30,19 @@ app.use(cors({
 }));
 app.set('socketio', io);
 // Routes
-app.use('/api/auth',router );
-// app.use('/api/player', playerRoutes);
+app.use('/api/auth',authRouter );
+app.use('/api/games',gameRouter );
 // app.use('/api/referee', refereeRoutes);
 io.on('connection', (socket) => {
     io.emit('newConnection', { socketId: socket.id });
     socket.on('disconnect', () => {
         console.log('user disconnected:', socket.id);
     });
+    socket.on('ready', (data) =>{
+        console.log("ready",data)
+        io.emit('playerReady',{data})
+    })
+    
 });
 
 server.listen(8000, () => {
